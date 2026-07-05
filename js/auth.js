@@ -3,7 +3,6 @@
  */
 import { getSupabase, handleSupabaseError, formatAuthError } from './supabase-client.js';
 
-/** Estado global da sessão */
 export const state = {
   user: null,
   perfil: null,
@@ -15,13 +14,10 @@ export async function login(email, senha) {
   const supabase = getSupabase();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
 
-  if (error) {
-    const friendly = formatAuthError(error);
-    throw new Error(friendly);
-  }
+  if (error) throw new Error(formatAuthError(error));
 
   if (!data?.user) {
-    throw new Error('Login não retornou usuário. Verifique configuração de e-mail no Supabase.');
+    throw new Error('Login não retornou usuário.');
   }
 
   state.user = data.user;
@@ -47,6 +43,7 @@ export async function loadPerfil() {
   if (!user) {
     state.user = null;
     state.perfil = null;
+    state.empresa = null;
     return null;
   }
 
@@ -60,15 +57,11 @@ export async function loadPerfil() {
 
   if (error) {
     await handleSupabaseError(error, 'Carregar perfil');
-    throw new Error(
-      `Erro ao carregar perfil: ${error.message}. Verifique RLS e se o seed SQL foi executado.`
-    );
+    throw new Error(`Erro ao carregar perfil: ${error.message}`);
   }
 
   if (!perfil) {
-    throw new Error(
-      'Usuário autenticado, mas sem perfil na tabela perfis. Execute sql/seed-dados-demo.sql no Supabase.'
-    );
+    throw new Error('Usuário sem perfil. Execute sql/seed-dados-demo.sql no Supabase.');
   }
 
   state.perfil = perfil;
@@ -80,9 +73,7 @@ export async function loadPerfil() {
       .eq('id', perfil.empresa_id)
       .maybeSingle();
 
-    if (empError) {
-      console.warn('Empresa não carregada:', empError.message);
-    }
+    if (empError) console.warn('Empresa não carregada:', empError.message);
     state.empresa = empresa || null;
   } else {
     state.empresa = null;
@@ -91,11 +82,19 @@ export async function loadPerfil() {
   if (perfil.perfil === 'COLABORADOR' && perfil.empresa_id) {
     const { data: det } = await supabase
       .from('colaboradores_detalhes')
-      .select('*, jornadas_trabalho(*)')
+      .select('*')
       .eq('user_id', user.id)
       .eq('empresa_id', perfil.empresa_id)
       .maybeSingle();
     state.colaboradorDetalhe = det;
+  } else {
+    state.colaboradorDetalhe = null;
+  }
+
+  if (window.__CPE_SESSION__) {
+    window.__CPE_SESSION__.user = user;
+    window.__CPE_SESSION__.perfil = perfil;
+    window.__CPE_SESSION__.empresaNome = state.empresa?.razao_social || null;
   }
 
   return perfil;

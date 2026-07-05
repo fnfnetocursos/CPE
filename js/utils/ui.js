@@ -11,6 +11,11 @@ export function showToast(message, type = 'info') {
   setTimeout(() => el.remove(), 4000);
 }
 
+export function clearToasts() {
+  const container = document.getElementById('toast-container');
+  if (container) container.innerHTML = '';
+}
+
 export function $(selector, parent = document) {
   return parent.querySelector(selector);
 }

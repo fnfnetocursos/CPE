@@ -3,35 +3,30 @@
  */
 import { state, initSession, logout, loadPerfil } from './auth.js';
 import { validateConfig } from './supabase-client.js';
-import { showSection, setAlert, closeModal, showToast, $ } from './utils/ui.js';
+import { showSection, setAlert, closeModal, showToast, clearToasts, $ } from './utils/ui.js';
 import { initMaster } from './views/master.js';
 import { initAdmin } from './views/admin.js';
 import { initColaborador, destroyColaborador } from './views/colaborador.js';
 
-/** Sincroniza state a partir da sessão criada pelo login-ui.js */
 async function ensureStateSynced() {
-  if (window.__CPE_SESSION__) {
+  if (window.__CPE_SESSION__?.user) {
     state.user = window.__CPE_SESSION__.user;
-    state.perfil = window.__CPE_SESSION__.perfil;
   }
-  if (state.user && !state.perfil) {
+  if (state.user || window.__CPE_SESSION__?.user) {
+    if (!state.user) state.user = window.__CPE_SESSION__.user;
     await loadPerfil();
   }
 }
 
-function clearLoginMessages() {
-  if (typeof window.clearLoginMessages === 'function') {
-    window.clearLoginMessages();
-  }
-}
-
-/** Roteia para a área correta conforme perfil e inicializa menus/dados */
 async function routeByProfile() {
   await ensureStateSynced();
 
   const perfil = state.perfil?.perfil;
   destroyColaborador();
-  clearLoginMessages();
+
+  if (typeof window.clearLoginMessages === 'function') {
+    window.clearLoginMessages();
+  }
 
   switch (perfil) {
     case 'MASTER':
@@ -51,18 +46,13 @@ async function routeByProfile() {
       break;
     default:
       showSection('section-login');
-      notifyLogin(
-        `Perfil "${perfil || 'indefinido'}" não reconhecido. Contate o administrador.`,
-        'error'
-      );
-  }
-}
-
-function notifyLogin(message, type) {
-  if (typeof window.showLoginMessage === 'function') {
-    window.showLoginMessage(message, type);
-  } else {
-    setAlert($('#login-alert'), message, type);
+      if (typeof window.showLoginMessage === 'function') {
+        window.showLoginMessage(
+          `Perfil "${perfil || 'indefinido'}" não reconhecido.`,
+          'error',
+          0
+        );
+      }
   }
 }
 
@@ -70,19 +60,26 @@ async function handleLogout() {
   destroyColaborador();
   await logout();
   window.__CPE_SESSION__ = null;
+
+  if (typeof window.resetSessionUI === 'function') {
+    window.resetSessionUI();
+  } else {
+    clearToasts();
+  }
+
   showSection('section-login');
   $('#form-login')?.reset();
-  notifyLogin('Você saiu do sistema.', 'info');
 }
 
 async function handleLoggedIn() {
   try {
-    await ensureStateSynced();
     await routeByProfile();
   } catch (err) {
     console.error('[LoggedIn]', err);
     showSection('section-login');
-    notifyLogin(err.message || 'Erro ao abrir painel.', 'error');
+    if (typeof window.showLoginMessage === 'function') {
+      window.showLoginMessage(err.message || 'Erro ao abrir painel.', 'error', 0);
+    }
     showToast(err.message || 'Erro ao abrir painel.', 'error');
   }
 }
@@ -99,7 +96,7 @@ function bindGlobalEvents() {
 async function bootstrap() {
   bindGlobalEvents();
 
-  window.__CPE_routeByProfile = () => handleLoggedIn();
+  window.__CPE_routeByProfile = handleLoggedIn;
   window.__CPE_handleLogout = handleLogout;
   window.__CPE_APP_READY__ = true;
   window.dispatchEvent(new CustomEvent('cpe:app-ready'));
@@ -121,7 +118,6 @@ async function bootstrap() {
   } catch (err) {
     console.error('[Bootstrap]', err);
     showSection('section-login');
-    notifyLogin(err.message || 'Erro ao iniciar aplicação.', 'error');
   }
 }
 

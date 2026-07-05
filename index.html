@@ -38,6 +38,9 @@
         <div class="sidebar__brand">Master · Gestão Global</div>
         <nav class="sidebar__nav">
           <button type="button" class="sidebar__link active" data-view="master-empresas">Empresas</button>
+          <button type="button" class="sidebar__link" data-view="master-perfis">Usuários</button>
+          <button type="button" class="sidebar__link" data-view="master-colaboradores">Colaboradores</button>
+          <button type="button" class="sidebar__link" data-view="master-registros">Registros de Ponto</button>
           <button type="button" class="sidebar__link" data-view="master-backup">Backup CSV</button>
           <button type="button" class="sidebar__link" id="btn-logout-master">Sair</button>
         </nav>
@@ -62,6 +65,36 @@
                     <th>Criada em</th>
                     <th>Ações</th>
                   </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-perfis" class="view-panel hidden">
+            <div class="table-wrapper">
+              <table class="data-table" id="table-master-perfis">
+                <thead>
+                  <tr><th>Nome</th><th>Perfil</th><th>Empresa ID</th><th>Criado em</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-colaboradores" class="view-panel hidden">
+            <div class="table-wrapper">
+              <table class="data-table" id="table-master-colaboradores">
+                <thead>
+                  <tr><th>Matrícula</th><th>User ID</th><th>Empresa ID</th><th>Admissão</th><th>Ativo</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-registros" class="view-panel hidden">
+            <div class="table-wrapper">
+              <table class="data-table" id="table-master-registros">
+                <thead>
+                  <tr><th>Data</th><th>Hora</th><th>Tipo</th><th>User ID</th><th>Terminal</th></tr>
                 </thead>
                 <tbody></tbody>
               </table>

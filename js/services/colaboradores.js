@@ -5,17 +5,36 @@ import { getSupabase } from '../supabase-client.js';
 
 export async function listColaboradores(empresaId) {
   const supabase = getSupabase();
-  const { data, error } = await supabase
+
+  const { data: colabs, error } = await supabase
     .from('colaboradores_detalhes')
-    .select(`
-      *,
-      perfis:user_id (id, nome, perfil),
-      jornadas_trabalho (descricao)
-    `)
+    .select('*')
     .eq('empresa_id', empresaId)
     .order('data_admissao', { ascending: false });
+
   if (error) throw error;
-  return data;
+  if (!colabs?.length) return [];
+
+  const userIds = [...new Set(colabs.map((c) => c.user_id))];
+  const jornadaIds = [...new Set(colabs.map((c) => c.jornada_id).filter(Boolean))];
+
+  const perfisPromise = supabase.from('perfis').select('id, nome, perfil').in('id', userIds);
+  const jornadasPromise = jornadaIds.length
+    ? supabase.from('jornadas_trabalho').select('id, descricao').in('id', jornadaIds)
+    : Promise.resolve({ data: [] });
+
+  const [perfisRes, jornadasRes] = await Promise.all([perfisPromise, jornadasPromise]);
+
+  if (perfisRes.error) throw perfisRes.error;
+
+  const perfilMap = Object.fromEntries((perfisRes.data || []).map((p) => [p.id, p]));
+  const jornadaMap = Object.fromEntries((jornadasRes.data || []).map((j) => [j.id, j]));
+
+  return colabs.map((c) => ({
+    ...c,
+    perfis: perfilMap[c.user_id] || { nome: '—' },
+    jornadas_trabalho: c.jornada_id ? jornadaMap[c.jornada_id] || null : null
+  }));
 }
 
 export async function listPerfisEmpresa(empresaId) {
@@ -29,10 +48,6 @@ export async function listPerfisEmpresa(empresaId) {
   return data;
 }
 
-/**
- * Cria colaborador: signUp + atualiza perfil + insere detalhes
- * Requer confirmação de e-mail desabilitada ou fluxo de convite no Supabase
- */
 export async function createColaborador({
   email,
   senha,
@@ -48,11 +63,7 @@ export async function createColaborador({
     email,
     password: senha,
     options: {
-      data: {
-        nome,
-        perfil: 'COLABORADOR',
-        empresa_id
-      }
+      data: { nome, perfil: 'COLABORADOR', empresa_id }
     }
   });
 
@@ -119,4 +130,23 @@ export async function createAdminEmpresa({ email, senha, nome, empresa_id }) {
 
   if (error) throw error;
   return userId;
+}
+
+/** Master — todos os perfis */
+export async function listAllPerfis() {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.from('perfis').select('*').order('nome');
+  if (error) throw error;
+  return data;
+}
+
+/** Master — todos colaboradores */
+export async function listAllColaboradores() {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('colaboradores_detalhes')
+    .select('*')
+    .order('data_admissao', { ascending: false });
+  if (error) throw error;
+  return data;
 }
