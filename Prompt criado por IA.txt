@@ -1,0 +1,137 @@
+# Objetivo do Projeto
+Desenvolva um sistema completo de Controle de Ponto Eletrônico Multi-Empresa (Multi-tenant) com Banco de Horas integrado, utilizando apenas HTML5, CSS3 (com variáveis e design responsivo moderno) e JavaScript Puro (Vanilla ES6+). O sistema deve ser estruturado para hospedagem de arquivos estáticos na plataforma VERCEL e utilizar o SUPABASE como Backend-as-a-Service (Autenticação, Banco de Dados PostgreSQL e Row Level Security).
+
+## 1. Arquitetura de Segurança Rígida (Supabase RLS)
+O banco de dados deve ser estritamente isolado por Tenant (Empresa). Cada tabela deve conter uma coluna `empresa_id`. Aplique políticas de Row Level Security (RLS) no Supabase para garantir que:
+- **Perfil MASTER:** Tem acesso global de leitura e escrita em todas as tabelas e empresas.
+- **Perfil ADMIN:** Acessa e manipula APENAS dados vinculados ao seu próprio `empresa_id`. Não pode ver dados de outras empresas.
+- **Perfil COLABORADOR:** Pode ler seus próprios dados de ponto, suas jornadas e seus espelhos de ponto. Só tem permissão de escrita para criar novos registros de ponto vinculados ao seu próprio `user_id` e `empresa_id`.
+
+---
+
+## 2. Estrutura de Telas e Fluxos (SPA - Single Page Application)
+O front-end deve ser estruturado em uma arquitetura SPA (Single Page Application) simples, gerenciando a visibilidade das seções via JavaScript para facilitar o deploy imediato na Vercel.
+
+### A. Tela de Login e Roteamento Dinâmico
+- Campos: E-mail e Senha.
+- Integração com `supabase.auth.signInWithPassword()`.
+- Após o login, o JS busca o perfil do usuário na tabela `perfis` e renderiza a área correspondente:
+  - Se Perfil == MASTER -> Dashboard Global de Gestão de Empresas.
+  - Se Perfil == ADMIN -> Dashboard da Empresa (Gestão, Parametrização e Relatórios).
+  - Se Perfil == COLABORADOR -> Tela de Registro de Ponto Exclusiva.
+
+### B. Tela do Colaborador (Registro de Ponto à Prova de Fraudes)
+- Exibição de um relógio digital em tempo real. O JavaScript deve validar o fuso horário local e, se possível, sincronizar o horário de referência com o servidor para mitigar fraudes de alteração do relógio do dispositivo.
+- Botões de marcação sequencial ou inteligente (Entrada, Saída Almoço, Retorno Almoço, Saída Término, Horas Extras).
+- **Rastreamento do Equipamento:** Como navegadores não expõem o nome da máquina por segurança, o JavaScript deve capturar o endereço de IP do cliente (via chamada de API externa gratuita como ipify.org) e o User-Agent. Adicione uma rotina que verifica se existe um "Nome do Terminal" (ex: "Terminal-Recepcao-01") salvo no `localStorage` do navegador; caso não exista (primeiro acesso da máquina), permita que o admin batize aquele navegador.
+
+### C. Ambiente Administrativo (Configurações e Cadastros Modulares)
+Crie interfaces amigáveis para gerenciamento (CRUD) de:
+- **Empresas (Apenas Master):** Cadastro de novas empresas clientes (Razão Social, CNPJ, E-mail do Admin).
+- **Colaboradores:** Vínculo de usuários aos seus respectivos perfis e jornadas de trabalho.
+- **Jornadas de Trabalho (Modelagem Separada):** Permita cadastrar múltiplos horários por empresa (ex: Turno Comercial 8h-18h, Turno Sábado 8h-12h, Escala de 6h). Deve conter campos para carga horária diária esperada, horários previstos de entrada/saída e margem de tolerância em minutos (ex: 10 minutos).
+- **Feriados e Afastamentos:** Cadastro de feriados (nacionais ou locais) e afastamentos (atestados, férias, licenças) contendo a opção "Abonar Dias" (booleano). Se marcado como verdadeiro, o motor de cálculo do sistema deve desconsiderar a falta do colaborador nesses dias específicos.
+
+### D. Relatórios Analíticos e Banco de Horas
+- **Filtros Avançados:** Por período de datas (Início/Fim) e seleção de Colaborador individual.
+- **Espelho de Ponto Detalhado:** Tabela contendo: Data, Marcações do Dia (Entradas/Saídas), Carga Horária Prevista, Horas Efetivamente Trabalhadas, Saldo do Dia (Crédito ou Débito).
+- **Motor de Cálculo (Lógica em JavaScript):** O sistema deve converter todas as horas e minutos do período selecionado para minutos inteiros para realizar cálculos matemáticos precisos de:
+  - **Total de Horas Trabalhadas:** Soma líquida de todas as horas do período.
+  - **Total de Horas Faltantes:** Diferença negativa acumulada nos dias úteis (descontando feriados/afastamentos abonados).
+  - **Dias em Atraso:** Contagem de dias em que a primeira entrada ultrapassou o horário da jornada + tolerância.
+  - **Dias com Hora Extra:** Contagem de dias em que o colaborador estendeu a jornada após o horário estipulado.
+  - **Consolidado do Banco de Horas:** Saldo final acumulado (Minutos de Crédito - Minutos de Débito) dentro do período filtrado.
+- **Dashboard Visual da Empresa:** Indicadores rápidos de assiduidade (colaboradores presentes hoje, faltas acumuladas na semana, volume total de horas extras geradas no mês corrente).
+
+### E. Backup e Exportação da base de dados em CSV
+
+---
+
+## 3. Modelo de Dados Relacional (Script SQL para o Supabase)
+Gere o script SQL completo estruturado em PostgreSQL para ser executado no painel do Supabase, contendo as devidas chaves primárias (`PRIMARY KEY`) e estrangeiras (`FOREIGN KEY`):
+
+```sql
+-- 1. Tabela de Empresas
+CREATE TABLE empresas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    razao_social VARCHAR(255) NOT NULL,
+    cnpj VARCHAR(18) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Tabela de Perfis de Usuários (Estende o auth.users do Supabase)
+CREATE TABLE perfis (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE,
+    nome VARCHAR(255) NOT NULL,
+    perfil VARCHAR(20) CHECK (perfil IN ('MASTER', 'ADMIN', 'COLABORADOR')) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Tabela de Jornadas de Trabalho (Permite múltiplos horários por empresa)
+CREATE TABLE jornadas_trabalho (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE,
+    descricao VARCHAR(100) NOT NULL,
+    carga_diaria_minutos INTEGER NOT NULL, -- Ex: 480 minutos para 8 horas
+    entrada_prevista TIME NOT NULL,
+    saida_prevista TIME NOT NULL,
+    tolerancia_minutos INTEGER DEFAULT 10,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. Tabela de Detalhes dos Colaboradores
+CREATE TABLE colaboradores_detalhes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES perfis(id) ON DELETE CASCADE,
+    empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE,
+    matricula VARCHAR(50),
+    jornada_id UUID REFERENCES jornadas_trabalho(id) ON DELETE SET NULL,
+    data_admissao DATE NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+-- 5. Tabela de Feriados
+CREATE TABLE feriados (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE, -- Se NULL, é feriado nacional comum a todos
+    data_feriado DATE NOT NULL,
+    descricao VARCHAR(100) NOT NULL
+);
+
+-- 6. Tabela de Afastamentos e Licenças (Para lógica de Abonos)
+CREATE TABLE afastamentos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES perfis(id) ON DELETE CASCADE,
+    empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    motivo VARCHAR(100) NOT NULL, -- Ex: "Atestado Médico", "Férias"
+    abonado BOOLEAN DEFAULT TRUE
+);
+
+-- 7. Tabela de Registros de Ponto (Histórico de batidas)
+CREATE TABLE registros_ponto (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES perfis(id) ON DELETE CASCADE,
+    empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE,
+    data_registro DATE NOT NULL DEFAULT CURRENT_DATE,
+    hora_registro TIME NOT NULL DEFAULT CURRENT_TIME,
+    tipo_registro VARCHAR(20) CHECK (tipo_registro IN ('ENTRADA', 'SAIDA_ALMOCO', 'RETORNO_ALMOCO', 'SAIDA')) NOT NULL,
+    ip_equipamento VARCHAR(45),
+    user_agent TEXT,
+    nome_terminal_local VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+4. Requisitos de Código e Padronização
+Implemente a integração do banco de dados utilizando a biblioteca oficial do cliente Supabase via CDN (@supabase/supabase-js).
+
+O código JavaScript deve ser modular e limpo, tratando de forma explícita as conversões de string de tempo (HH:MM) para minutos na memória para realizar as subtrações e somas de banco de horas sem gerar inconsistências de fuso horário.
+
+O CSS deve ser componentizado, profissional e limpo, adotando boas práticas de UI/UX para aplicações corporativas (fácil leitura, feedback visual claro ao registrar o ponto e modais acessíveis).
+
+Prepare a inicialização do cliente Supabase para ler as credenciais a partir de um objeto de configuração global, de modo que os dados sensíveis de URL e Anon Key possam ser facilmente gerenciados pelas Variáveis de Ambiente da Vercel.
+
+O código deve ser gerado com o máximo de comentários e informações possíveis, para futura leitura e melhorias

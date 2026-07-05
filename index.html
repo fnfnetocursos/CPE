@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Ponto Eletrônico</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- LOGIN -->
+  <section id="section-login" class="app-section login-page">
+    <div class="login-card">
+      <h1 class="login-card__title">Controle de Ponto</h1>
+      <p class="login-card__subtitle">Sistema Multi-Empresa com Banco de Horas</p>
+      <div id="login-alert" class="alert alert-error hidden" role="alert"></div>
+      <form id="form-login">
+        <div class="form-group">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" class="form-control" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="login-senha">Senha</label>
+          <input type="password" id="login-senha" class="form-control" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- MASTER -->
+  <section id="section-master" class="app-section hidden">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__brand">Master · Gestão Global</div>
+        <nav class="sidebar__nav">
+          <button type="button" class="sidebar__link active" data-view="master-empresas">Empresas</button>
+          <button type="button" class="sidebar__link" data-view="master-backup">Backup CSV</button>
+          <button type="button" class="sidebar__link" id="btn-logout-master">Sair</button>
+        </nav>
+      </aside>
+      <div class="main-content">
+        <header class="topbar">
+          <h2 id="master-page-title">Empresas</h2>
+          <span class="topbar__user" id="master-user-info"></span>
+        </header>
+        <div class="page-content">
+          <div id="view-master-empresas" class="view-panel">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-nova-empresa">Nova Empresa</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-empresas">
+                <thead>
+                  <tr>
+                    <th>Razão Social</th>
+                    <th>CNPJ</th>
+                    <th>E-mail Admin</th>
+                    <th>Criada em</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-backup" class="view-panel hidden">
+            <div class="card">
+              <h3 class="card__title">Exportação / Backup CSV</h3>
+              <p style="margin-bottom:1rem;color:var(--color-text-muted)">Exporte todas as tabelas do sistema para arquivos CSV.</p>
+              <div class="toolbar">
+                <button type="button" class="btn btn-secondary" data-export="empresas">Empresas</button>
+                <button type="button" class="btn btn-secondary" data-export="perfis">Perfis</button>
+                <button type="button" class="btn btn-secondary" data-export="jornadas_trabalho">Jornadas</button>
+                <button type="button" class="btn btn-secondary" data-export="colaboradores_detalhes">Colaboradores</button>
+                <button type="button" class="btn btn-secondary" data-export="feriados">Feriados</button>
+                <button type="button" class="btn btn-secondary" data-export="afastamentos">Afastamentos</button>
+                <button type="button" class="btn btn-secondary" data-export="registros_ponto">Registros de Ponto</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="section-admin" class="app-section hidden">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__brand" id="admin-empresa-nome">Painel Admin</div>
+        <nav class="sidebar__nav">
+          <button type="button" class="sidebar__link active" data-view="admin-dashboard">Dashboard</button>
+          <button type="button" class="sidebar__link" data-view="admin-colaboradores">Colaboradores</button>
+          <button type="button" class="sidebar__link" data-view="admin-jornadas">Jornadas</button>
+          <button type="button" class="sidebar__link" data-view="admin-feriados">Feriados</button>
+          <button type="button" class="sidebar__link" data-view="admin-afastamentos">Afastamentos</button>
+          <button type="button" class="sidebar__link" data-view="admin-relatorios">Relatórios</button>
+          <button type="button" class="sidebar__link" data-view="admin-terminal">Terminal</button>
+          <button type="button" class="sidebar__link" data-view="admin-backup">Backup CSV</button>
+          <button type="button" class="sidebar__link" id="btn-logout-admin">Sair</button>
+        </nav>
+      </aside>
+      <div class="main-content">
+        <header class="topbar">
+          <h2 id="admin-page-title">Dashboard</h2>
+          <span class="topbar__user" id="admin-user-info"></span>
+        </header>
+        <div class="page-content">
+          <div id="view-admin-dashboard" class="view-panel">
+            <div class="kpi-grid" id="admin-kpis"></div>
+          </div>
+          <div id="view-admin-colaboradores" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-novo-colaborador">Novo Colaborador</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-colaboradores">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Matrícula</th>
+                    <th>Jornada</th>
+                    <th>Admissão</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-admin-jornadas" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-nova-jornada">Nova Jornada</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-jornadas">
+                <thead>
+                  <tr>
+                    <th>Descrição</th>
+                    <th>Entrada</th>
+                    <th>Saída</th>
+                    <th>Carga (min)</th>
+                    <th>Tolerância</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-admin-feriados" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-novo-feriado">Novo Feriado</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-feriados">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Escopo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-admin-afastamentos" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-novo-afastamento">Novo Afastamento</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-afastamentos">
+                <thead>
+                  <tr>
+                    <th>Colaborador</th>
+                    <th>Início</th>
+                    <th>Fim</th>
+                    <th>Motivo</th>
+                    <th>Abonado</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-admin-relatorios" class="view-panel hidden">
+            <div class="card" style="margin-bottom:1.5rem">
+              <h3 class="card__title">Filtros</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="relatorio-inicio">Data Início</label>
+                  <input type="date" id="relatorio-inicio" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="relatorio-fim">Data Fim</label>
+                  <input type="date" id="relatorio-fim" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="relatorio-colaborador">Colaborador</label>
+                  <select id="relatorio-colaborador" class="form-control">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn btn-primary btn-block" id="btn-gerar-relatorio">Gerar Relatório</button>
+                </div>
+              </div>
+            </div>
+            <div class="kpi-grid" id="relatorio-kpis"></div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-espelho">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Marcações</th>
+                    <th>Carga Prevista</th>
+                    <th>Horas Trabalhadas</th>
+                    <th>Saldo do Dia</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="toolbar" style="margin-top:1rem">
+              <button type="button" class="btn btn-outline" id="btn-exportar-espelho">Exportar Espelho CSV</button>
+            </div>
+          </div>
+          <div id="view-admin-terminal" class="view-panel hidden">
+            <div class="card">
+              <h3 class="card__title">Nomear Terminal deste Navegador</h3>
+              <p style="margin-bottom:1rem;color:var(--color-text-muted)">
+                Defina um identificador para este equipamento (ex: Terminal-Recepcao-01).
+                Será salvo no navegador e enviado em cada batida de ponto.
+              </p>
+              <div class="form-group">
+                <label for="input-nome-terminal">Nome do Terminal</label>
+                <input type="text" id="input-nome-terminal" class="form-control" maxlength="100" placeholder="Terminal-Recepcao-01">
+              </div>
+              <button type="button" class="btn btn-primary" id="btn-salvar-terminal">Salvar Terminal</button>
+              <p id="terminal-atual-info" style="margin-top:1rem;font-size:0.9rem;color:var(--color-text-muted)"></p>
+            </div>
+          </div>
+          <div id="view-admin-backup" class="view-panel hidden">
+            <div class="card">
+              <h3 class="card__title">Backup CSV da Empresa</h3>
+              <div class="toolbar">
+                <button type="button" class="btn btn-secondary" data-export-empresa="colaboradores_detalhes">Colaboradores</button>
+                <button type="button" class="btn btn-secondary" data-export-empresa="jornadas_trabalho">Jornadas</button>
+                <button type="button" class="btn btn-secondary" data-export-empresa="feriados">Feriados</button>
+                <button type="button" class="btn btn-secondary" data-export-empresa="afastamentos">Afastamentos</button>
+                <button type="button" class="btn btn-secondary" data-export-empresa="registros_ponto">Registros de Ponto</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLABORADOR -->
+  <section id="section-colaborador" class="app-section hidden">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__brand">Meu Ponto</div>
+        <nav class="sidebar__nav">
+          <button type="button" class="sidebar__link active" data-view="colab-ponto">Registrar Ponto</button>
+          <button type="button" class="sidebar__link" data-view="colab-historico">Meu Histórico</button>
+          <button type="button" class="sidebar__link" id="btn-logout-colab">Sair</button>
+        </nav>
+      </aside>
+      <div class="main-content">
+        <header class="topbar">
+          <h2 id="colab-page-title">Registrar Ponto</h2>
+          <span class="topbar__user" id="colab-user-info"></span>
+        </header>
+        <div class="page-content">
+          <div id="view-colab-ponto" class="view-panel">
+            <div class="clock-panel">
+              <div class="clock-panel__time" id="clock-display">00:00:00</div>
+              <div class="clock-panel__date" id="clock-date"></div>
+              <div class="clock-panel__sync" id="clock-sync-status">Sincronizando horário...</div>
+            </div>
+            <div id="punch-alert" class="alert hidden"></div>
+            <div class="punch-grid" id="punch-buttons"></div>
+            <div class="card">
+              <h3 class="card__title">Batidas de Hoje</h3>
+              <div class="table-wrapper">
+                <table class="data-table" id="table-batidas-hoje">
+                  <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Tipo</th>
+                      <th>Terminal</th>
+                      <th>IP</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div id="view-colab-historico" class="view-panel hidden">
+            <div class="form-row" style="margin-bottom:1rem">
+              <div class="form-group">
+                <label for="colab-hist-inicio">De</label>
+                <input type="date" id="colab-hist-inicio" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="colab-hist-fim">Até</label>
+                <input type="date" id="colab-hist-fim" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-primary" id="btn-colab-historico">Consultar</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-colab-historico">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Tipo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal genérico -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal__header">
+        <h3 id="modal-title">Modal</h3>
+        <button type="button" class="modal__close" id="modal-close" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal__body" id="modal-body"></div>
+      <div class="modal__footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
