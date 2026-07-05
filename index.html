@@ -40,7 +40,10 @@
           <button type="button" class="sidebar__link active" data-view="master-empresas">Empresas</button>
           <button type="button" class="sidebar__link" data-view="master-perfis">Usuários</button>
           <button type="button" class="sidebar__link" data-view="master-colaboradores">Colaboradores</button>
-          <button type="button" class="sidebar__link" data-view="master-registros">Registros de Ponto</button>
+          <button type="button" class="sidebar__link" data-view="master-jornadas">Jornadas</button>
+          <button type="button" class="sidebar__link" data-view="master-feriados">Feriados</button>
+          <button type="button" class="sidebar__link" data-view="master-afastamentos">Afastamentos</button>
+          <button type="button" class="sidebar__link" data-view="master-registros">Registros Ponto</button>
           <button type="button" class="sidebar__link" data-view="master-backup">Backup CSV</button>
           <button type="button" class="sidebar__link" id="btn-logout-master">Sair</button>
         </nav>
@@ -71,30 +74,78 @@
             </div>
           </div>
           <div id="view-master-perfis" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-master-novo-perfil">Novo Usuário</button>
+            </div>
             <div class="table-wrapper">
               <table class="data-table" id="table-master-perfis">
                 <thead>
-                  <tr><th>Nome</th><th>Perfil</th><th>Empresa ID</th><th>Criado em</th></tr>
+                  <tr><th>Nome</th><th>Perfil</th><th>Empresa</th><th>Criado em</th><th>Ações</th></tr>
                 </thead>
                 <tbody></tbody>
               </table>
             </div>
           </div>
           <div id="view-master-colaboradores" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-master-novo-colaborador">Novo Colaborador</button>
+            </div>
             <div class="table-wrapper">
               <table class="data-table" id="table-master-colaboradores">
                 <thead>
-                  <tr><th>Matrícula</th><th>User ID</th><th>Empresa ID</th><th>Admissão</th><th>Ativo</th></tr>
+                  <tr><th>Matrícula</th><th>Usuário</th><th>Empresa</th><th>Admissão</th><th>Ativo</th><th>Ações</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-jornadas" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-master-nova-jornada">Nova Jornada</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-master-jornadas">
+                <thead>
+                  <tr><th>Descrição</th><th>Empresa</th><th>Entrada</th><th>Saída</th><th>Carga (min)</th><th>Ações</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-feriados" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-master-novo-feriado">Novo Feriado</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-master-feriados">
+                <thead>
+                  <tr><th>Data</th><th>Descrição</th><th>Escopo</th><th>Ações</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="view-master-afastamentos" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-master-novo-afastamento">Novo Afastamento</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-master-afastamentos">
+                <thead>
+                  <tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Motivo</th><th>Abonado</th><th>Ações</th></tr>
                 </thead>
                 <tbody></tbody>
               </table>
             </div>
           </div>
           <div id="view-master-registros" class="view-panel hidden">
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-master-novo-registro">Novo Registro</button>
+            </div>
             <div class="table-wrapper">
               <table class="data-table" id="table-master-registros">
                 <thead>
-                  <tr><th>Data</th><th>Hora</th><th>Tipo</th><th>User ID</th><th>Terminal</th></tr>
+                  <tr><th>Data</th><th>Hora</th><th>Tipo</th><th>Usuário</th><th>Terminal</th><th>Ações</th></tr>
                 </thead>
                 <tbody></tbody>
               </table>

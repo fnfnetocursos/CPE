@@ -10,7 +10,10 @@
     'master-empresas': 'Empresas',
     'master-perfis': 'Usuários',
     'master-colaboradores': 'Colaboradores',
-    'master-registros': 'Registros de Ponto',
+    'master-jornadas': 'Jornadas',
+    'master-feriados': 'Feriados',
+    'master-afastamentos': 'Afastamentos',
+    'master-registros': 'Registros Ponto',
     'master-backup': 'Backup CSV',
     'admin-dashboard': 'Dashboard',
     'admin-colaboradores': 'Colaboradores',
@@ -364,9 +367,18 @@
 
     window.dispatchEvent(new CustomEvent('cpe:logged-in'));
 
-    if (perfil.perfil === 'MASTER') await shellLoadMaster('master-empresas');
-    else if (perfil.perfil === 'ADMIN') await shellLoadAdmin(perfil);
-    else if (perfil.perfil === 'COLABORADOR') await shellLoadColaborador(session.user.id, perfil.empresa_id);
+    ready = await waitForApp(4000);
+    if (ready && window.__CPE_routeByProfile) {
+      await window.__CPE_routeByProfile();
+      return;
+    }
+
+    if (perfil.perfil === 'MASTER' && !window.__CPE_APP_READY__) {
+      await shellLoadMaster('master-empresas');
+    } else if (perfil.perfil === 'ADMIN') await shellLoadAdmin(perfil);
+    else if (perfil.perfil === 'COLABORADOR') {
+      await shellLoadColaborador(session.user.id, perfil.empresa_id);
+    }
   }
 
   function routeAfterLogin(session) {
@@ -422,7 +434,14 @@
 
       var session = window.__CPE_SESSION__;
       if (!session) return;
-      if (viewKey === 'master-empresas') shellLoadMaster(viewKey);
+
+      if (viewKey.startsWith('master-')) {
+        if (!window.__CPE_APP_READY__ && viewKey === 'master-empresas') {
+          shellLoadMaster(viewKey);
+        }
+        return;
+      }
+
       if (viewKey === 'admin-colaboradores' && session.perfil.empresa_id) {
         shellLoadAdminColaboradores(session.perfil.empresa_id);
       }
