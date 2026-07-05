@@ -1,7 +1,7 @@
 /**
  * Autenticação e gerenciamento de sessão/perfil
  */
-import { getSupabase, handleSupabaseError } from './supabase-client.js';
+import { getSupabase, handleSupabaseError, formatAuthError } from './supabase-client.js';
 
 /** Estado global da sessão */
 export const state = {
@@ -14,7 +14,16 @@ export const state = {
 export async function login(email, senha) {
   const supabase = getSupabase();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
-  if (error) throw error;
+
+  if (error) {
+    const friendly = formatAuthError(error);
+    throw new Error(friendly);
+  }
+
+  if (!data?.user) {
+    throw new Error('Login não retornou usuário. Verifique configuração de e-mail no Supabase.');
+  }
+
   state.user = data.user;
   await loadPerfil();
   return state.perfil;
@@ -31,7 +40,10 @@ export async function logout() {
 
 export async function loadPerfil() {
   const supabase = getSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError) throw userError;
+
   if (!user) {
     state.user = null;
     state.perfil = null;
@@ -44,22 +56,34 @@ export async function loadPerfil() {
     .from('perfis')
     .select('*')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     await handleSupabaseError(error, 'Carregar perfil');
-    throw error;
+    throw new Error(
+      `Erro ao carregar perfil: ${error.message}. Verifique RLS e se o seed SQL foi executado.`
+    );
+  }
+
+  if (!perfil) {
+    throw new Error(
+      'Usuário autenticado, mas sem perfil na tabela perfis. Execute sql/seed-dados-demo.sql no Supabase.'
+    );
   }
 
   state.perfil = perfil;
 
   if (perfil.empresa_id) {
-    const { data: empresa } = await supabase
+    const { data: empresa, error: empError } = await supabase
       .from('empresas')
       .select('*')
       .eq('id', perfil.empresa_id)
-      .single();
-    state.empresa = empresa;
+      .maybeSingle();
+
+    if (empError) {
+      console.warn('Empresa não carregada:', empError.message);
+    }
+    state.empresa = empresa || null;
   } else {
     state.empresa = null;
   }
@@ -79,7 +103,10 @@ export async function loadPerfil() {
 
 export async function initSession() {
   const supabase = getSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  if (error) throw error;
+
   if (session?.user) {
     state.user = session.user;
     await loadPerfil();

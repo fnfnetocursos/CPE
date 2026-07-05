@@ -25,7 +25,7 @@
           <label for="login-senha">Senha</label>
           <input type="password" id="login-senha" class="form-control" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
+        <button type="submit" id="btn-login-submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
       </form>
     </div>
   </section>
@@ -354,6 +354,16 @@
 
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.addEventListener('error', function (event) {
+      if (!event.filename || !event.filename.includes('/js/')) return;
+      var alertEl = document.getElementById('login-alert');
+      if (!alertEl) return;
+      alertEl.className = 'alert alert-error';
+      alertEl.textContent = 'Erro ao carregar scripts da aplicação. Verifique o deploy (vercel.json deve servir arquivos js/ e css/).';
+      alertEl.classList.remove('hidden');
+    });
+  </script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

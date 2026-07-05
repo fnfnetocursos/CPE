@@ -3,6 +3,7 @@
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
+    { "handle": "filesystem" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
