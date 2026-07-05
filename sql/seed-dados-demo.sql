@@ -284,7 +284,7 @@ WHERE id = 'a1111111-1111-1111-1111-111111111001';
 
 INSERT INTO jornadas_trabalho (id, empresa_id, descricao, carga_diaria_minutos, entrada_prevista, saida_prevista, tolerancia_minutos) VALUES
 (
-    'j1111111-1111-1111-1111-111111111001',
+    'd1111111-1111-1111-1111-111111111001',
     'e1111111-1111-1111-1111-111111111101',
     'Turno Comercial (8h–17h)',
     480,
@@ -293,7 +293,7 @@ INSERT INTO jornadas_trabalho (id, empresa_id, descricao, carga_diaria_minutos, 
     10
 ),
 (
-    'j1111111-1111-1111-1111-111111111002',
+    'd1111111-1111-1111-1111-111111111002',
     'e1111111-1111-1111-1111-111111111101',
     'Turno Sábado (8h–12h)',
     240,
@@ -302,7 +302,7 @@ INSERT INTO jornadas_trabalho (id, empresa_id, descricao, carga_diaria_minutos, 
     5
 ),
 (
-    'j1111111-1111-1111-1111-111111111003',
+    'd1111111-1111-1111-1111-111111111003',
     'e1111111-1111-1111-1111-111111111102',
     'Escala Manhã (6h)',
     360,
@@ -321,7 +321,7 @@ INSERT INTO colaboradores_detalhes (id, user_id, empresa_id, matricula, jornada_
     'a1111111-1111-1111-1111-111111111021',
     'e1111111-1111-1111-1111-111111111101',
     'TS-001',
-    'j1111111-1111-1111-1111-111111111001',
+    'd1111111-1111-1111-1111-111111111001',
     '2024-03-15',
     TRUE
 ),
@@ -330,7 +330,7 @@ INSERT INTO colaboradores_detalhes (id, user_id, empresa_id, matricula, jornada_
     'a1111111-1111-1111-1111-111111111022',
     'e1111111-1111-1111-1111-111111111101',
     'TS-002',
-    'j1111111-1111-1111-1111-111111111001',
+    'd1111111-1111-1111-1111-111111111001',
     '2023-08-01',
     TRUE
 ),
@@ -339,7 +339,7 @@ INSERT INTO colaboradores_detalhes (id, user_id, empresa_id, matricula, jornada_
     'a1111111-1111-1111-1111-111111111023',
     'e1111111-1111-1111-1111-111111111101',
     'TS-003',
-    'j1111111-1111-1111-1111-111111111001',
+    'd1111111-1111-1111-1111-111111111001',
     '2025-01-10',
     TRUE
 ),
@@ -348,7 +348,7 @@ INSERT INTO colaboradores_detalhes (id, user_id, empresa_id, matricula, jornada_
     'a1111111-1111-1111-1111-111111111031',
     'e1111111-1111-1111-1111-111111111102',
     'LE-001',
-    'j1111111-1111-1111-1111-111111111003',
+    'd1111111-1111-1111-1111-111111111003',
     '2024-11-20',
     TRUE
 );
