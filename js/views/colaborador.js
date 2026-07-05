@@ -45,6 +45,12 @@ export function initColaborador() {
 
     $('#btn-logout-colab')?.addEventListener('click', () => window.dispatchEvent(new CustomEvent('app:logout')));
     $('#btn-colab-historico')?.addEventListener('click', loadHistorico);
+
+    window.addEventListener('cpe:view-changed', (e) => {
+      const view = e.detail?.view;
+      if (view === 'colab-historico') initHistoricoDates();
+      if (view === 'colab-ponto') loadBatidasHoje();
+    });
   }
 
   renderPunchButtons();

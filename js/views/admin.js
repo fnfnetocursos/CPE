@@ -51,7 +51,7 @@ export function initAdmin() {
     document.querySelectorAll('#section-admin .sidebar__link[data-view]').forEach((link) => {
       link.addEventListener('click', async () => {
         const view = link.dataset.view;
-        showView('admin', view.replace('admin-', ''));
+        showView('admin', view);
         $('#admin-page-title').textContent = TITLES[view] || view;
         await onAdminView(view);
       });
@@ -71,6 +71,11 @@ export function initAdmin() {
     });
 
     initRelatorioDates();
+
+    window.addEventListener('cpe:view-changed', async (e) => {
+      const view = e.detail?.view;
+      if (view?.startsWith('admin-')) await onAdminView(view);
+    });
   }
 
   loadDashboard();

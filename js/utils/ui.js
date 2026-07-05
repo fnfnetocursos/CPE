@@ -26,13 +26,16 @@ export function showSection(sectionId) {
 }
 
 export function showView(prefix, viewName) {
+  const fullKey = viewName.startsWith(prefix + '-') ? viewName : `${prefix}-${viewName}`;
+  const panelSuffix = fullKey.replace(`${prefix}-`, '');
+
   $$(`[id^="view-${prefix}-"]`).forEach((v) => v.classList.add('hidden'));
-  const view = document.getElementById(`view-${prefix}-${viewName.replace(`${prefix}-`, '')}`);
+  const view = document.getElementById(`view-${prefix}-${panelSuffix}`);
   if (view) view.classList.remove('hidden');
 
   const links = document.querySelectorAll(`#section-${prefix} .sidebar__link[data-view]`);
   links.forEach((link) => {
-    link.classList.toggle('active', link.dataset.view === viewName);
+    link.classList.toggle('active', link.dataset.view === fullKey);
   });
 }
 

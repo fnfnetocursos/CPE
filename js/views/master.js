@@ -24,7 +24,7 @@ export function initMaster() {
     document.querySelectorAll('#section-master .sidebar__link[data-view]').forEach((link) => {
       link.addEventListener('click', () => {
         const view = link.dataset.view;
-        showView('master', view.replace('master-', ''));
+        showView('master', view);
         $('#master-page-title').textContent = TITLES[view] || view;
         if (view === 'master-empresas') loadEmpresas();
       });
@@ -35,6 +35,10 @@ export function initMaster() {
 
     document.querySelectorAll('[data-export]').forEach((btn) => {
       btn.addEventListener('click', () => exportGlobal(btn.dataset.export));
+    });
+
+    window.addEventListener('cpe:view-changed', (e) => {
+      if (e.detail?.view === 'master-empresas') loadEmpresas();
     });
   }
 

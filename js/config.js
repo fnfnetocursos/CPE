@@ -1,5 +1,5 @@
 /**
- * Configuração global — substitua pelos valores do Supabase ou use build da Vercel.
+ * Configuração global do Supabase.
  */
 window.APP_CONFIG = {
   SUPABASE_URL: 'https://iiidtbgloxcrqqkezrzf.supabase.co',
