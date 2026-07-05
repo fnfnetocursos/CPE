@@ -72,6 +72,7 @@ export function setAlert(el, message, type = 'error') {
   el.className = `alert alert-${type}`;
   el.textContent = message;
   el.classList.remove('hidden');
+  el.style.display = 'block';
 }
 
 /** Chave localStorage para nome do terminal */

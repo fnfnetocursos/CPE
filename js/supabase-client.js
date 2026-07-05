@@ -35,10 +35,16 @@ export function validateConfig() {
 export function getSupabase() {
   if (supabaseClient) return supabaseClient;
 
+  if (window.__CPE_SUPABASE__) {
+    supabaseClient = window.__CPE_SUPABASE__;
+    return supabaseClient;
+  }
+
   validateConfig();
 
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.__CPE_SUPABASE__ = supabaseClient;
   return supabaseClient;
 }
 

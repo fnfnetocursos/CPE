@@ -15,8 +15,9 @@
     <div class="login-card">
       <h1 class="login-card__title">Controle de Ponto</h1>
       <p class="login-card__subtitle">Sistema Multi-Empresa com Banco de Horas</p>
-      <div id="login-alert" class="alert alert-error hidden" role="alert"></div>
-      <form id="form-login">
+      <div id="login-alert" class="alert alert-error hidden" role="alert" aria-live="assertive"></div>
+      <p id="login-status" class="login-status" aria-live="polite"></p>
+      <form id="form-login" novalidate>
         <div class="form-group">
           <label for="login-email">E-mail</label>
           <input type="email" id="login-email" class="form-control" required autocomplete="email">
@@ -354,16 +355,6 @@
 
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    window.addEventListener('error', function (event) {
-      if (!event.filename || !event.filename.includes('/js/')) return;
-      var alertEl = document.getElementById('login-alert');
-      if (!alertEl) return;
-      alertEl.className = 'alert alert-error';
-      alertEl.textContent = 'Erro ao carregar scripts da aplicação. Verifique o deploy (vercel.json deve servir arquivos js/ e css/).';
-      alertEl.classList.remove('hidden');
-    });
-  </script>
-  <script type="module" src="js/app.js"></script>
+  <script src="js/login-ui.js"></script>
 </body>
 </html>

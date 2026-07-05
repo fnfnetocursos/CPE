@@ -363,6 +363,25 @@
   font-size: 0.9rem;
 }
 
+.alert-info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.login-status {
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  min-height: 1.25rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.login-status--info { color: #1e40af; background: #eff6ff; }
+.login-status--success { color: #065f46; background: #ecfdf5; }
+.login-status--error { color: #991b1b; background: #fef2f2; }
+
 .alert-success {
   background: #ecfdf5;
   color: #065f46;
