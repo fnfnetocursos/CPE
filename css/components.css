@@ -363,12 +363,6 @@
   font-size: 0.9rem;
 }
 
-.alert-info {
-  background: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
-}
-
 .login-status {
   font-size: 0.9rem;
   text-align: center;
@@ -422,6 +416,7 @@
 
 .toast.success { background: var(--color-success); }
 .toast.error { background: var(--color-danger); }
+.toast.info { background: var(--color-primary); }
 
 @keyframes slideIn {
   from { transform: translateX(100%); opacity: 0; }

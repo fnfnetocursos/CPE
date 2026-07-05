@@ -3,28 +3,51 @@
  */
 import { state, initSession, logout, loadPerfil } from './auth.js';
 import { validateConfig } from './supabase-client.js';
-import { showSection, setAlert, closeModal, showToast, showView, $ } from './utils/ui.js';
+import { showSection, setAlert, closeModal, showToast, $ } from './utils/ui.js';
 import { initMaster } from './views/master.js';
 import { initAdmin } from './views/admin.js';
 import { initColaborador, destroyColaborador } from './views/colaborador.js';
 
+/** Sincroniza state a partir da sessão criada pelo login-ui.js */
+async function ensureStateSynced() {
+  if (window.__CPE_SESSION__) {
+    state.user = window.__CPE_SESSION__.user;
+    state.perfil = window.__CPE_SESSION__.perfil;
+  }
+  if (state.user && !state.perfil) {
+    await loadPerfil();
+  }
+}
+
+function clearLoginMessages() {
+  if (typeof window.clearLoginMessages === 'function') {
+    window.clearLoginMessages();
+  }
+}
+
 /** Roteia para a área correta conforme perfil e inicializa menus/dados */
-function routeByProfile() {
+async function routeByProfile() {
+  await ensureStateSynced();
+
   const perfil = state.perfil?.perfil;
   destroyColaborador();
+  clearLoginMessages();
 
   switch (perfil) {
     case 'MASTER':
       showSection('section-master');
       initMaster();
+      showToast('Bem-vindo, ' + (state.perfil?.nome || 'Master'), 'success');
       break;
     case 'ADMIN':
       showSection('section-admin');
       initAdmin();
+      showToast('Bem-vindo, ' + (state.perfil?.nome || 'Admin'), 'success');
       break;
     case 'COLABORADOR':
       showSection('section-colaborador');
       initColaborador();
+      showToast('Bem-vindo, ' + (state.perfil?.nome || 'Colaborador'), 'success');
       break;
     default:
       showSection('section-login');
@@ -43,14 +66,6 @@ function notifyLogin(message, type) {
   }
 }
 
-async function syncStateFromWindow() {
-  if (window.__CPE_SESSION__) {
-    state.user = window.__CPE_SESSION__.user;
-    state.perfil = window.__CPE_SESSION__.perfil;
-  }
-  await loadPerfil();
-}
-
 async function handleLogout() {
   destroyColaborador();
   await logout();
@@ -62,8 +77,8 @@ async function handleLogout() {
 
 async function handleLoggedIn() {
   try {
-    await syncStateFromWindow();
-    routeByProfile();
+    await ensureStateSynced();
+    await routeByProfile();
   } catch (err) {
     console.error('[LoggedIn]', err);
     showSection('section-login');
@@ -84,7 +99,7 @@ function bindGlobalEvents() {
 async function bootstrap() {
   bindGlobalEvents();
 
-  window.__CPE_routeByProfile = routeByProfile;
+  window.__CPE_routeByProfile = () => handleLoggedIn();
   window.__CPE_handleLogout = handleLogout;
   window.__CPE_APP_READY__ = true;
   window.dispatchEvent(new CustomEvent('cpe:app-ready'));
@@ -99,7 +114,7 @@ async function bootstrap() {
 
     const perfil = await initSession();
     if (perfil) {
-      routeByProfile();
+      await routeByProfile();
     } else {
       showSection('section-login');
     }
